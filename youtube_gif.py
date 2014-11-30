@@ -1,18 +1,46 @@
 import copy
+from dateutil.parser import parser as dateparser
+import urlparse
 import youtube_dl
 from moviepy.editor import VideoFileClip
 
 vid_url = r"https://www.youtube.com/watch?v=E2JpTN0qBZs&list=UU3tNpTOHsTnkmbwztCs30sA"
 vid_url = r"https://www.youtube.com/watch?v=wISNp3V3LfA&feature=youtu.be&t=5m"
+vid_url = r"https://www.youtube.com/watch?v=B1yoJEClApE&feature=youtu.be&t=0s"
+
+def parse_url_for_timestamp(url):
+
+    parsed_url = urlparse.urlparse(url)
+    qs = urlparse.parse_qs(parsed_url.query)
+    raw_time = None
+    if 't' in qs:
+        raw_time = qs['t']
+    elif 't=' in parsed_url.fragment:
+        raw_time = parsed_url.fragment.split('=')[1] #assume only one frag
+
+    result = (0, 0)
+    if raw_time:
+        try:
+            raw = dateparser(raw_time)
+            result = raw.minute, raw.second
+        except Exception as e:
+            print 'date error:',e
+            result = (0, 0)
+
+    return result
+
+
 
 def download_url(downloader, url):
     orig_params = downloader.params
 
     final_vid_title = "Error?"
+    final_time_tuple = (0, 0)
 
     try:
         new_params = copy.copy(orig_params)
         info = downloader.extract_info(url, download=False)
+
         vid_title = info.get('title', 'Untitled').replace(' ', '_')
         vid_id = info.get('id', 'ID-less')
 
@@ -20,14 +48,18 @@ def download_url(downloader, url):
         new_params['outtmpl'] = final_vid_title
         downloader.params = new_params
         downloader.download([url])
+
+        final_time_tuple = parse_url_for_timestamp(url)
     except Exception as e:
         print
         print 'ERROR!!'
         print e
+        print
+
     finally:
         downloader.params = orig_params
 
-    return final_vid_title
+    return final_vid_title, final_time_tuple
 
 def get_clip(video_title, start=(0,0), seconds=5):
     video = VideoFileClip(video_title)
@@ -43,6 +75,7 @@ def make_gif(clip, gif_title=None):
     if not gif_title.endswith('.gif'):
         gif_title+=".gif"
 
+    # clip.write_gif(gif_title)
     clip.write_gif(gif_title, program='ffmpeg')
     return gif_title
 
@@ -52,8 +85,8 @@ def main():
         "outtmpl": "%(id)s",
         "noplaylist" : True,
         })
-    video_title = download_url(downloader, vid_url)
-    clip = get_clip(video_title, start=(5,0))
+    video_title, start_tuple = download_url(downloader, vid_url)
+    clip = get_clip(video_title, start=start_tuple)
     gif_title = make_gif(clip, video_title)
 
     print '\nsuccess! the new gif is called:', gif_title
