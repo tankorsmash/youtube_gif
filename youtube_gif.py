@@ -1,35 +1,36 @@
 import copy
-from dateutil.parser import parser as dateparser
+from dateutil.parser import parse as dateparse
 import urlparse
 import youtube_dl
 from moviepy.editor import VideoFileClip
 
 vid_url = r"https://www.youtube.com/watch?v=E2JpTN0qBZs&list=UU3tNpTOHsTnkmbwztCs30sA"
 vid_url = r"https://www.youtube.com/watch?v=wISNp3V3LfA&feature=youtu.be&t=5m"
-vid_url = r"https://www.youtube.com/watch?v=B1yoJEClApE&feature=youtu.be&t=0s"
+vid_url = r"https://www.youtube.com/watch?v=B1yoJEClApE&feature=youtu.be&t=7s"
 
 def parse_url_for_timestamp(url):
 
     parsed_url = urlparse.urlparse(url)
     qs = urlparse.parse_qs(parsed_url.query)
+
     raw_time = None
     if 't' in qs:
-        raw_time = qs['t']
+        raw_time = qs['t'][0]
     elif 't=' in parsed_url.fragment:
         raw_time = parsed_url.fragment.split('=')[1] #assume only one frag
 
     result = (0, 0)
     if raw_time:
         try:
-            raw = dateparser(raw_time)
+            raw = dateparse(raw_time)
             result = raw.minute, raw.second
         except Exception as e:
             print 'date error:',e
             result = (0, 0)
+        else:
+            print 'resulting time', result
 
     return result
-
-
 
 def download_url(downloader, url):
     orig_params = downloader.params
@@ -43,13 +44,13 @@ def download_url(downloader, url):
 
         vid_title = info.get('title', 'Untitled').replace(' ', '_')
         vid_id = info.get('id', 'ID-less')
+        final_time_tuple = parse_url_for_timestamp(url)
 
         final_vid_title = (vid_title+"__"+vid_id).encode('ascii', 'ignore').decode('utf8')
         new_params['outtmpl'] = final_vid_title
         downloader.params = new_params
         downloader.download([url])
 
-        final_time_tuple = parse_url_for_timestamp(url)
     except Exception as e:
         print
         print 'ERROR!!'
