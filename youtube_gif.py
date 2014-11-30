@@ -1,12 +1,12 @@
 import copy
-from dateutil.parser import parse as dateparse
+import string
 import urlparse
 import youtube_dl
+
+from dateutil.parser import parse as dateparse
 from moviepy.editor import VideoFileClip
 
-vid_url = r"https://www.youtube.com/watch?v=E2JpTN0qBZs&list=UU3tNpTOHsTnkmbwztCs30sA"
-vid_url = r"https://www.youtube.com/watch?v=wISNp3V3LfA&feature=youtu.be&t=5m"
-vid_url = r"https://www.youtube.com/watch?v=B1yoJEClApE&feature=youtu.be&t=7s"
+vid_url = r"https://www.youtube.com/watch?v=J7KKjALBZQA&feature=youtube_gdata_player#t=8s"
 
 def parse_url_for_timestamp(url):
 
@@ -42,7 +42,7 @@ def download_url(downloader, url):
         new_params = copy.copy(orig_params)
         info = downloader.extract_info(url, download=False)
 
-        vid_title = info.get('title', 'Untitled').replace(' ', '_')
+        vid_title = info.get('title', 'Untitled').replace(' ', '_').encode('utf8', 'ignore').translate(string.maketrans("", ""), string.punctuation)
         vid_id = info.get('id', 'ID-less')
         final_time_tuple = parse_url_for_timestamp(url)
 
