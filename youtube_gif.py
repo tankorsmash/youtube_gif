@@ -16,8 +16,6 @@ def download_url(downloader, url):
         vid_title = info.get('title', 'Untitled').replace(' ', '_')
         vid_id = info.get('id', 'ID-less')
 
-        import ipdb;ipdb.set_trace();
-
         final_vid_title = (vid_title+"__"+vid_id).encode('ascii', 'ignore').decode('utf8')
         new_params['outtmpl'] = final_vid_title
         downloader.params = new_params
