@@ -6,7 +6,7 @@ import youtube_dl
 from dateutil.parser import parse as dateparse
 from moviepy.editor import VideoFileClip
 
-vid_url = r"https://www.youtube.com/watch?v=J7KKjALBZQA&feature=youtube_gdata_player#t=8s"
+vid_url = r"https://www.youtube.com/watch?v=CulczSynxjk&feature=youtu.be&t=1s"
 
 def parse_url_for_timestamp(url):
 
@@ -87,7 +87,7 @@ def main():
         "noplaylist" : True,
         })
     video_title, start_tuple = download_url(downloader, vid_url)
-    clip = get_clip(video_title, start=start_tuple)
+    clip = get_clip(video_title, start=start_tuple, seconds=6)
     gif_title = make_gif(clip, video_title)
 
     print '\nsuccess! the new gif is called:', gif_title
